@@ -1,7 +1,8 @@
 <template>
-  <div class="login-container">
+  <div class="login-container" :style="backgroundStyle">
     <div class="login-form">
-      <h2>Login</h2>
+      <h2>Dissertation Management System</h2>
+      <h3>Login</h3>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="teacherId">Teacher ID</label>
@@ -36,6 +37,15 @@
 import { ref } from 'vue';
 import { useAuthStore } from '../store';
 import { useRouter } from 'vue-router';
+//import backgroundImage from '../assets/images/backgroundIMG.jpeg';
+const backgroundImage = ref(new URL('../assets/images/backgroundIMG.jpeg', import.meta.url).href);
+
+const backgroundStyle = {
+  backgroundImage: `url(${backgroundImage.value})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat'
+};
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -80,11 +90,12 @@ const handleLogin = async () => {
 }
 
 .login-form {
-  background: white;
+  background: silver;
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  width: 300px;
+  width: 400px;
+  margin-left: 50%;
 }
 
 .form-group {
