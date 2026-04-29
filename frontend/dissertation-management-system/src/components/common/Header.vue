@@ -3,7 +3,7 @@
     <div class="header-content">
       <h1>Dissertation Management System</h1>
       <div class="user-info">
-        <span>{{ user?.name || 'Guest' }}</span>
+        <span>Hello! {{ user?.name || 'Guest' }}</span>
         <button @click="handleLogout" v-if="user">Logout</button>
       </div>
     </div>

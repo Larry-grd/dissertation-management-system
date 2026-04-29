@@ -1,10 +1,10 @@
 <template>
   <div class="student-list">
     <h3>Student List</h3>
-    <div v-if="loading">Loading...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
+    <div v-if="studentStore.loading">Loading...</div>
+    <div v-else-if="studentStore.error" class="error">{{ studentStore.error }}</div>
     <div v-else>
-      <div v-if="students.length === 0" class="no-students">
+      <div v-if="studentStore.students.length === 0" class="no-students">
         No student data
       </div>
       <table v-else>
@@ -21,7 +21,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="student in students" :key="student._id">
+          <tr v-for="student in studentStore.students" :key="student._id">
             <td>{{ student.studentId }}</td>
             <td>{{ student.name }}</td>
             <td>{{ student.email }}</td>
@@ -80,8 +80,8 @@
           </div>
           <div v-if="assignError" class="error">{{ assignError }}</div>
           <div class="form-buttons">
-            <button type="submit" :disabled="loading">
-              {{ loading ? 'Assigning...' : 'Assign Teacher' }}
+            <button type="submit" :disabled="assignLoading">
+              {{ assignLoading ? 'Assigning...' : 'Assign Teacher' }}
             </button>
             <button type="button" @click="closeModal">Cancel</button>
           </div>
@@ -93,12 +93,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { studentApi } from '../../api/students';
 import { useAuthStore } from '../../store';
+import { useStudentStore } from '../../store';
 
-const students = ref([]);
-const loading = ref(false);
-const error = ref('');
+const studentStore = useStudentStore();
 const user = useAuthStore().user;
 const showModal = ref(false);
 const modalTitle = ref('');
@@ -108,40 +106,8 @@ const assignError = ref('');
 const assignLoading = ref(false);
 
 onMounted(() => {
-  fetchStudents();
+  studentStore.fetchStudents();
 });
-
-const fetchStudents = async () => {
-  loading.value = true;
-  error.value = '';
-  
-  try {
-    console.log('Fetching student list...');
-    const response = await studentApi.getAllStudents();
-    console.log('API response:', response.data);
-    let studentData = response.data;
-    if (Array.isArray(studentData)) {
-      students.value = studentData;
-      console.log('Student data:', students.value);
-      // Check assigned teacher for each student
-      students.value.forEach((student, index) => {
-        console.log(`Student ${index + 1}:`, {
-          studentId: student.studentId,
-          name: student.name,
-          hasAssignedTeacher: !!student.assignedTeacher,
-          assignedTeacher: student.assignedTeacher
-        });
-      });
-    } else {
-      error.value = 'Invalid data format, expected array';
-    }
-  } catch (err) {
-    console.error('Failed to fetch student list:', err);
-    error.value = 'Failed to fetch student list: ' + (err.response?.data?.message || err.message);
-  } finally {
-    loading.value = false;
-  }
-};
 
 const getStatusClass = (status) => {
   switch(status) {
@@ -179,13 +145,11 @@ const assignTeacher = async () => {
       teacherId: teacherId.value
     });
     
-    await studentApi.assignTeacher({
+    await studentStore.assignTeacher({
       studentId: currentStudent.value.studentId,
       teacherId: teacherId.value
     });
     
-    // 刷新学生列表
-    await fetchStudents();
     closeModal();
   } catch (err) {
     console.error('Assign teacher failed:', err);
@@ -197,6 +161,7 @@ const assignTeacher = async () => {
 </script>
 
 <style scoped>
+/* 保持原有样式 */
 .student-list {
   margin-bottom: 2rem;
 }
@@ -225,7 +190,6 @@ button {
   border-radius: 4px;
   cursor: pointer;
   margin-right: 0.5rem;
-  transition: all 0.3s ease;
 }
 
 button:hover:not(:disabled) {
@@ -268,29 +232,6 @@ button.assigned {
   text-align: center;
   padding: 2rem;
   color: #666;
-}
-
-/* Teacher info styles */
-.assigned-teacher-info {
-  background-color: #e8f4f8;
-  padding: 0.5rem;
-  border-radius: 4px;
-  margin-top: 0.5rem;
-}
-
-.teacher-name {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-.teacher-id {
-  color: #7f8c8d;
-  font-size: 0.9em;
-}
-
-.teacher-email {
-  color: #7f8c8d;
-  font-size: 0.9em;
 }
 
 /* 模态框样式 */

@@ -41,7 +41,9 @@
 <script setup>
 import { ref } from 'vue';
 import { studentApi } from '../../api/students';
+import { useStudentStore } from '../../store';
 
+const studentStore = useStudentStore();
 const studentId = ref('');
 const name = ref('');
 const email = ref('');
@@ -55,19 +57,19 @@ const handleSubmit = async () => {
   success.value = '';
   
   try {
-    const response = await studentApi.addStudent({
+    await studentStore.addStudent({
       studentId: studentId.value,
       name: name.value,
       email: email.value
     });
     
     success.value = 'Student added successfully!';
-    // Clear form
+    // 清空表单
     studentId.value = '';
     name.value = '';
     email.value = '';
   } catch (err) {
-    error.value = 'Failed to add student: ' + (err.response?.data?.message || err.message);
+    error.value = 'Add student failed: ' + (err.response?.data?.message || err.message);
   } finally {
     loading.value = false;
   }
